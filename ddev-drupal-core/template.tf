@@ -26,9 +26,6 @@ provider "docker" {
   }
 }
 
-
-
-
 variable "docker_host" {
   description = "Docker host socket path"
   type        = string
@@ -67,7 +64,6 @@ variable "docker_gid" {
 data "coder_workspace" "me" {}
 
 # Workspace owner data source (Coder v2+)
-# Note: For Coder v0.12, this may not be available - will need fallback
 data "coder_workspace_owner" "me" {}
 
 
@@ -103,8 +99,6 @@ variable "workspace_image_registry" {
   # To use a specific version, override the image_version variable when deploying
   default = "index.docker.io/ddev/coder-ddev"
 }
-
-
 
 # Use pre-built image from Docker Hub
 # The image is built and pushed using the Makefile (see root Makefile and VERSION file)
@@ -147,7 +141,7 @@ variable "cpu" {
 variable "memory" {
   description = "Memory in GB"
   type        = number
-  default     = 12
+  default     = 8
   validation {
     condition     = var.memory >= 2 && var.memory <= 128
     error_message = "Memory must be between 2 and 128 GB"
@@ -412,7 +406,7 @@ STATUS_HEADER
 
     # Step 2: Configure DDEV (must be done before composer create)
     if [ ! -f ".ddev/config.yaml" ]; then
-      log_setup "Configuring DDEV for Drupal 12 with PHP 8.5 and docroot=web..."
+      log_setup "Configuring DDEV for Drupal HEAD with PHP 8.5 and docroot=web..."
       update_status "⏳ DDEV config: In progress..."
 
       if ddev config --project-type=drupal12 --php-version=8.5 --docroot=web --host-webserver-port=80 >> "$SETUP_LOG" 2>&1; then
@@ -935,10 +929,6 @@ resource "coder_metadata" "workspace_info" {
     value = "/home/coder/drupal-core"
   }
   item {
-    key   = "drupal_profile"
-    value = "demo_umami"
-  }
-  item {
     key   = "admin_credentials"
     value = "admin / admin"
   }
@@ -946,27 +936,6 @@ resource "coder_metadata" "workspace_info" {
     key   = "image"
     value = "${docker_image.workspace_image.name} (version: ${local.image_version})"
   }
-  item {
-    key   = "php_version"
-    value = "8.5"
-  }
-  item {
-    key   = "cpu"
-    value = "${var.cpu} vCPU (soft limit)"
-  }
-  item {
-    key   = "memory"
-    value = "${var.memory} GB"
-  }
-  item {
-    key   = "setup_logs"
-    value = "/tmp/drupal-setup.log"
-  }
-  item {
-    key   = "setup_status"
-    value = "~/SETUP_STATUS.txt"
-  }
-
 }
 
 # Output for Vault integration status (visible in Terraform logs)
