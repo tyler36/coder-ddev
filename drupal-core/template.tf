@@ -610,6 +610,13 @@ WELCOME_STATIC
     if [ -f "composer.json" ] && [ -d "repos/drupal/.git" ]; then
       log_setup "✓ Drupal core project already present — skipping setup"
       update_status "✓ Setup: Already present"
+      # For HEAD workspaces (non-issue-fork), keep the drupal repo current on every start
+      if [ "$USING_ISSUE_FORK" = "false" ]; then
+        _t=$SECONDS
+        git -C "$DRUPAL_DIR/repos/drupal" fetch --all --prune >> "$SETUP_LOG" 2>&1 || true
+        git -C "$DRUPAL_DIR/repos/drupal" merge --ff-only origin/main >> "$SETUP_LOG" 2>&1 || true
+        log_setup "  git fetch+merge complete ($((SECONDS - _t))s)"
+      fi
     elif [ "$USING_ISSUE_FORK" = "false" ] && [ -f "$CACHE_SEED/composer.json" ] && [ -d "$CACHE_SEED/repos/drupal/.git" ]; then
       _t=$SECONDS
       log_setup "Cache hit: seeding project from host cache (fast path)..."
@@ -1182,6 +1189,7 @@ module "vscode-web" {
   agent_id       = coder_agent.main.id
   folder         = "/home/coder/drupal-core"
   accept_license = true
+  order          = 2
   extensions     = [
     "xdebug.php-debug",
     "bmewburn.vscode-intelephense-client",
@@ -1201,8 +1209,9 @@ resource "coder_app" "ddev-web" {
   agent_id     = coder_agent.main.id
   slug         = "ddev-web"
   display_name = "DDEV Web"
+  order        = 1
   url          = "http://localhost:80"
-  icon         = "https://avatars.githubusercontent.com/u/47573844?s=128"
+  icon         = "https://raw.githubusercontent.com/ddev/ddev/main/docs/content/developers/logos/SVG/Logo.svg"
   subdomain    = true
   share        = "owner"
 
