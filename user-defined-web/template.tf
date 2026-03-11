@@ -491,6 +491,7 @@ module "vscode-web" {
     "streetsidesoftware.code-spell-checker",
     "stylelint.vscode-stylelint",
     "valeryanm.vscode-phpsab",
+    "GitHub.vscode-pull-request-github",
     "biati.ddev-manager",
   ]
 }
